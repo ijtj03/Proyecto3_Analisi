@@ -3,38 +3,42 @@ import pylab as plt
 
 def getAuxMats(Z):
 	k = 1
-	print(n)
 	delX = 1
 	delY = 1
-	dx = np.linspace(0,(len(Z[0])-1),len(Z[0]))	
-	dy = np.linspace(0,(len(Z)-1),len(Z))	
+	if((len(Z[0])+len(Z))//(2)>=10):
+		n=(len(Z[0])+len(Z))//(2*10)
+	else:
+		n=1
+	dx = np.linspace(0,(len(Z[0])-n),len(Z[0])//n)	
+	dy = np.linspace(0,(len(Z)-n),len(Z)//n)	
 	X,Y = np.meshgrid(dx,dy)
-	u = np.zeros((len(Z),len(Z[0])))
-	v = np.zeros((len(Z),len(Z[0])))
+	u = np.zeros((len(X),len(X[0])))
+	v = np.zeros((len(X),len(X[0])))
 	a,b=0,0
-	for x in range(len(Z)):
-		for y in range(len(Z[0])):
-			if(x!=0 and x!=len(Z)-1 and y!=0 and y!=len(Z[0])-1):
-				v[x][y]= k*(Z[x+1][y]-Z[x-1][y])/(2*delX)
-				u[x][y]= -k*(Z[x][y+1]-Z[x][y-1])/(2*delY)		
+	for x in range(len(X)):
+		for y in range(len(X[0])):
+			if(a!=0 and a!=len(Z)-1 and b!=0 and b!=len(Z[0])-1):
+				v[x][y]= k*(Z[a+1][b]-Z[a-1][b])/(2*delX)
+				u[x][y]= -k*(Z[a][b+1]-Z[a][b-1])/(2*delY)		
 			else:
-				v[x][y]= k/2*delX
-				u[x][y]= -k/2*delY
-			y+=5
-
+				v[x][y]= 0
+				u[x][y]= 0
+			b+=n
+		a+=n
+		b=0
+	return [X,Y,u,v]
 	plt.imshow(z)
 	plt.colorbar()
-	plt.quiver(X,Y,u,v,Z,width=.01,linewidth=1)	
-	plt.colorbar() 
+	plt.quiver(X,Y,u,v,width=.01,linewidth=1)	
 	plt.show()
+	
 
-n = 10
+n = 500
 z = np.zeros((n,n))
 nMin = 0
 for x in range(n):
-	for y in range(n):
-		nMin-=10	
+	for y in range(n):	
 		z[x][y] =nMin
-	nMin = z[x][1] 
+	nMin+=10
 #print(z)		
 getAuxMats(z)

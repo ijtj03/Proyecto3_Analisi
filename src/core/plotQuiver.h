@@ -72,32 +72,32 @@ void PlotQuiver<T>::initialize(anpi::Matrix<T> data){
     Py_Initialize();
     PyRun_SimpleString("import numpy as np");
     PyRun_SimpleString("import pylab as plt");
-    std::string auxFun ="def getAuxMats(Z):					\n";
-	auxFun.append("	dx = np.linspace(0,len(Z[0])-1,len(Z[0]))		\n");
-	auxFun.append("	dy = np.linspace(0,len(Z)-1,len(Z))			\n");
-	auxFun.append("	X,Y = np.meshgrid(dx,dy)				\n");
-	auxFun.append("	zMax = np.amax(Z)					\n");
-	auxFun.append("	u = np.zeros((len(Z),len(Z[0])))			\n");
-	auxFun.append("	v = np.zeros((len(Z),len(Z[0])))			\n");
-	auxFun.append("	a,b=0,0							\n");
-	auxFun.append("	posMax=np.array([])					\n");
-	auxFun.append("	for x in Z:						\n");
-	auxFun.append("		for y in x:					\n");
-	auxFun.append("			if (y==zMax):				\n");
-	auxFun.append("				posMax = np.array([a,b])	\n");
-	auxFun.append("				break				\n");
-	auxFun.append("			b+=1					\n");
-	auxFun.append("		a+=1						\n");
-	auxFun.append("		b=0						\n");
-	auxFun.append("	a,b=0,0							\n");
-	auxFun.append("	for x in Z:						\n");
-	auxFun.append("		for y in x:					\n");
-	auxFun.append("			v[a][b]=posMax[0]-a			\n");
-	auxFun.append("			u[a][b]=b-posMax[1]			\n");			
-	auxFun.append("			b+=1					\n");
-	auxFun.append("		a+=1						\n");
-	auxFun.append("		b=0						\n");
-	auxFun.append("	return [X,Y,u,v]					\n");
+    std::string auxFun = "def getAuxMats(Z):\n";
+	auxFun.append("	k = 1\n");
+	auxFun.append("	delX = 1\n");
+	auxFun.append("	delY = 1\n");
+	auxFun.append("	if((len(Z[0])+len(Z))//(2)>=10):\n");
+	auxFun.append("		n=(len(Z[0])+len(Z))//(2*10)\n");
+	auxFun.append("	else:\n");
+	auxFun.append("		n=1\n");
+	auxFun.append("	dx = np.linspace(0,(len(Z[0])-n),len(Z[0])//n)	\n");
+	auxFun.append("	dy = np.linspace(0,(len(Z)-n),len(Z)//n)	\n");
+	auxFun.append("	X,Y = np.meshgrid(dx,dy)\n");
+	auxFun.append("	u = np.zeros((len(X),len(X[0])))\n");
+	auxFun.append("	v = np.zeros((len(X),len(X[0])))\n");
+	auxFun.append("	a,b=0,0\n");
+	auxFun.append("	for x in range(len(X)):\n");
+	auxFun.append("		for y in range(len(X[0])):\n");
+	auxFun.append("			if(a!=0 and a!=len(Z)-1 and b!=0 and b!=len(Z[0])-1):\n");
+	auxFun.append("				v[x][y]= k*(Z[a+1][b]-Z[a-1][b])/(2*delX)\n");
+	auxFun.append("				u[x][y]= -k*(Z[a][b+1]-Z[a][b-1])/(2*delY)	\n");	
+	auxFun.append("			else:\n");
+	auxFun.append("				v[x][y]= 0\n");
+	auxFun.append("				u[x][y]= 0\n");
+	auxFun.append("			b+=n\n");
+	auxFun.append("		a+=n\n");
+	auxFun.append("		b=0\n");
+	auxFun.append("	return [X,Y,u,v]\n");
     PyRun_SimpleString(auxFun.c_str());
     _data = data;
     
@@ -140,7 +140,8 @@ void PlotQuiver<T>::plotColor(){
 template <typename T>
 void PlotQuiver<T>::plotQuiver(){
     PyRun_SimpleString("auxVar = getAuxMats(z)");
-    PyRun_SimpleString("plt.quiver(auxVar[0],auxVar[1],auxVar[2],auxVar[3],width=.01,linewidth=0.1)");
+    PyRun_SimpleString("plt.colorbar()");
+    PyRun_SimpleString("plt.quiver(auxVar[0],auxVar[1],auxVar[2],auxVar[3],width=.01,linewidth=1)");
 }
 
 }

@@ -6,9 +6,10 @@ project(anpi VERSION 0.0.0 LANGUAGES CXX)
 set (CMAKE_CXX_STANDARD 11)
 
 set(COMMON_SOURCES )
-set(PLOTSOURCES main.cpp)
+set(PLOTSOURCES src/main.cpp)
 
-include_directories("./core" )
+include_directories("src/core" )
+include_directories("src/Process" )
 
 add_executable(testPlot ${PLOTSOURCES})
 target_link_libraries(testPlot PRIVATE python2.7)

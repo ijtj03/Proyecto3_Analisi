@@ -38,7 +38,7 @@ anpi::Matrix<T> liebmann<T>::generateMat(anpi::Matrix<T> originalMat) {
     setUpEdge(limitY);
     setDownEdge(limitY);
     setRLEdge(limitY,limitX);
-    printX();
+    //printX();
     Matrix<T> newMat(limitX*limitY,limitX*limitY,T(0));
     for(int i= 0; i<limitX*limitY;++i){
         fillMat(newMat,i,limitX,limitY);
@@ -65,47 +65,12 @@ void liebmann<T>::fillMat(anpi::Matrix<T> &matA,int nodeX,int maxX,int maxY) {
     matA[nodeX][nodeX]=4;
     //std::cout<<"node id "<<id<<std::endl;
     switch(id){
-        case 1:
-            matA[nodeX][1]=-1;
-            matA[nodeX][nodeX+maxY]=-1;
-            break;
-        case 2:
-            matA[nodeX][nodeX-1]=-1;
-            matA[nodeX][nodeX+maxY]=-1;
-            break;
-        case 3:
-            matA[nodeX][nodeX+1]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            break;
-        case 4:
-            matA[nodeX][nodeX-1]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            break;
-        case 5:
-            matA[nodeX][nodeX+1]=-1;
-            matA[nodeX][nodeX-1]=-1;
-            matA[nodeX][nodeX+maxY]=-1;
-            break;
-        case 6:
-            matA[nodeX][nodeX+1]=-1;
-            matA[nodeX][nodeX-1]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            break;
-        case 7:
-            matA[nodeX][nodeX+maxY]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            matA[nodeX][nodeX+1]=-1;
-            break;
-        case 8:
-            matA[nodeX][nodeX+maxY]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            matA[nodeX][nodeX-1]=-1;
-            break;
+
         case 9:
-            matA[nodeX][nodeX+maxY]=-1;
-            matA[nodeX][nodeX-maxY]=-1;
-            matA[nodeX][nodeX-1]=-1;
-            matA[nodeX][nodeX+1]=-1;
+            matA[nodeX][nodeX+maxY]=1;
+            matA[nodeX][nodeX-maxY]=1;
+            matA[nodeX][nodeX-1]=1;
+            matA[nodeX][nodeX+1]=1;
             break;
     }
 
@@ -114,38 +79,40 @@ void liebmann<T>::fillMat(anpi::Matrix<T> &matA,int nodeX,int maxX,int maxY) {
 template <typename T>
 void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
     int limit = matA.rows();
-    T es = 1;
-
-    //vectorXold = vector;
-
     int  cont(0);
-    while (cont<3) {
-        #pragma omp parallel for
-        for (int i = 1; i < limit-1; ++i) {
+    end=false;
+    while (!end&&cont<500) {
+        //#pragma omp parallel for
+        for (int i = 0; i < limit; ++i) {
             if (cont > 0) {
                 vectorXold[i] = vectorX[i]; }
-            vectorX[i] = (T(-1)*getNodeTem(matA, i, limit));
+            getNodeTem(matA, i, limit);
         }
-        printX();
+        //printX();
         cont++;
-        std::cout<<"\nnumber count "<<cont<<"\n"<<std::endl;
-
     }
-    printX();
+    std::cout<<"\nnumber count "<<cont<<"\n"<<std::endl;
+    //printX();
 }
 
 template <typename T>
 T liebmann<T>::getNodeTem(anpi::Matrix<T> matA, int node,int limit) {
     T temp(0);
+    T es = std::sqrt(std::numeric_limits<T>::epsilon());
+    for (int i = 0; i <limit; ++i) {
+        if(i!=node) {
+            temp = temp + (matA[node][i] * vectorX[i]);
+            //std::cout<<"vector X "<<vectorX[i]<<" temp sum "<<node<<": "<<temp<<std::endl;
+        }
 
-    for (int i = 1; i <limit-1; ++i) {
-            temp = temp + (matA[node][i]*vectorX[i]);
-            std::cout<<"vector X "<<vectorX[i]<<" temp sum "<<node<<": "<<temp<<std::endl;
     }
+    if(temp==0){return vectorX[node];}
     temp = temp/4;
     //std::cout<<"temp "<<node<<": "<<temp<<std::endl;
     temp = lambda*temp+(1-lambda)*vectorXold[node];
     //std::cout<<"temp relax "<<node<<": "<<temp<<std::endl;
+    vectorX[node]=temp;
+    if(error(sqrt(limit)+1)<es){end=true;}
     return  temp;
 }
 
@@ -218,6 +185,18 @@ void liebmann<T>::printX() {
 template <typename T>
 T liebmann<T>::error(int node) {
     T error =std::abs((vectorX[node]-vectorXold[node])/vectorX[node])*100;
-    //std::cout<<"error node "<<node<<" "<<error<<std::endl;
     return error;
+}
+
+template <typename T>
+anpi::Matrix<T> liebmann<T>::generateFinalMat(anpi::Matrix<T> model) {
+    int count(0);
+    anpi::Matrix<T> res(model.rows(),model.cols(),T(0));
+    for (int i = 0; i <model.rows() ; ++i) {
+        for (int j = 0; j <model.cols() ; ++j) {
+            res[i][j]=vectorX[count];
+            ++count;
+        }
+    }
+    return res;
 }

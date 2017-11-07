@@ -14,6 +14,7 @@ private:
     std::vector<T> vectorX;
     std::vector<T> vectorXold;
     T lambda;
+    bool end=false;
     edgeNode<T> upEdge;
     edgeNode<T> botEdge;
     edgeNode<T> leftEdge;
@@ -33,6 +34,7 @@ public:
     void setRLEdge(int,int);
     T error(int);
     void printX();
+    anpi::Matrix<T> generateFinalMat(anpi::Matrix<T>);
 
 };
 

@@ -1,15 +1,5 @@
 /**
-
-ANPI
-Metodos para realizar graficas x,y usando Matplotlib (Python)
-@Autor: David Badilla S.
-@Description: Clase que se utiliza para poder realizar graficas de puntos x y
-	      usando como base la biblioteca Matplotlib de Python. La comuni-
-	      se establece mediante Python.h, lo cual permite ejecutar codigo 
-	      de Python desde c++.
-@Contact: davbs94@gmail.com
-
-
+*  Clase PlotQuiver. Con esta clase se pueden grraficar las con escalas de colores la temperatura de una placa y tambien el flujo del mismo
 */
 
 #ifndef PLOTPY_H
@@ -34,23 +24,53 @@ template<typename T>
 class  PlotQuiver{
 
 	private:
-		//Titulo de la grafica.
+		/** 
+		* Variable privada.
+		* Donde se guardan los datos de la grafica.
+		*/
 		anpi::Matrix<T> _data;
 
 	public:
 		
+		/**
+		* Constructor.
+		* Para instanciar la clase.
+		*/
 		PlotQuiver();
-
+	
+		/**
+		* Desstructor.
+		* Para eliminar instancias.
+		*/	
 		~PlotQuiver();
 
+	      /**
+	       * Miembro normal que recibe un argumento
+	       * @param data Matriz con los datos de la grafica.
+	       */
 		void initialize(anpi::Matrix<T> data);
-
+		
+		/**
+	       * Miembro normal que recibe cero argumentos. Despliega todas las graficas
+	       */
 		void showPlots();
 
+		/**
+	       * Miembro normal que recibe dos argumento y retorna un string
+	       * @param data Matriz con los datos de la grafica.
+	       * @param varName string con el nombre de la variable en el proograma de python
+	       * @return String con la instruccion completa para python
+	       */
 		std::string getData(anpi::Matrix<T> data,std::string varName);
 
+		/**
+	       * Miembro normal que recibe cero argumentos. Despliega la grafica de colores.
+	       */
 		void plotColor();
-
+		
+		/**
+	       * Miembro normal que recibe cero argumentos. Despliega las flechas.
+	       */
 		void plotQuiver();
 
 		//std::string getData(anpi::Matrix<T> data,std::string varName);
@@ -121,12 +141,7 @@ std::string PlotQuiver<T>::getData(anpi::Matrix<T> mat,std::string varName){
     tmp1.append("])");
     return tmp1;
 }
-/*
-*@brief Metodo que despliega todas las figuras que se han creado antes de hacer este llamado
-*
-*
-*
-*/
+
 template <typename T>
 void PlotQuiver<T>::showPlots(){
     PyRun_SimpleString("plt.show()");

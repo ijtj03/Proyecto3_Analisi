@@ -14,6 +14,7 @@ private:
     std::vector<T> vectorX;
     std::vector<T> vectorXold;
     T lambda;
+    T err;
     bool end=false;
     edgeNode<T> upEdge;
     edgeNode<T> botEdge;

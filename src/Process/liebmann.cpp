@@ -80,15 +80,21 @@ template <typename T>
 void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
     int limit = matA.rows();
     int  cont(0);
+    err = 0;
+    T es = std::sqrt(std::numeric_limits<T>::epsilon());
+    es=0.1;
     end=false;
     while (!end&&cont<500) {
-        //#pragma omp parallel for
+        #pragma omp parallel
+        #pragma omp for schedule(dynamic,1) num_threads(limit/2)
         for (int i = 0; i < limit; ++i) {
             if (cont > 0) {
                 vectorXold[i] = vectorX[i]; }
             getNodeTem(matA, i, limit);
         }
-        //printX();
+        //std::cout<<"\nMax Error "<<err<<"\n"<<std::endl;
+        if(err<es){end=true;}
+        else{err=0;}
         cont++;
     }
     std::cout<<"\nnumber count "<<cont<<"\n"<<std::endl;
@@ -98,7 +104,7 @@ void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
 template <typename T>
 T liebmann<T>::getNodeTem(anpi::Matrix<T> matA, int node,int limit) {
     T temp(0);
-    T es = std::sqrt(std::numeric_limits<T>::epsilon());
+    T errorTemp(0);
     for (int i = 0; i <limit; ++i) {
         if(i!=node) {
             temp = temp + (matA[node][i] * vectorX[i]);
@@ -112,7 +118,8 @@ T liebmann<T>::getNodeTem(anpi::Matrix<T> matA, int node,int limit) {
     temp = lambda*temp+(1-lambda)*vectorXold[node];
     //std::cout<<"temp relax "<<node<<": "<<temp<<std::endl;
     vectorX[node]=temp;
-    if(error(sqrt(limit)+1)<es){end=true;}
+    errorTemp = error(node);
+    if(err<errorTemp){err=errorTemp;}
     return  temp;
 }
 
@@ -191,12 +198,14 @@ T liebmann<T>::error(int node) {
 template <typename T>
 anpi::Matrix<T> liebmann<T>::generateFinalMat(anpi::Matrix<T> model) {
     int count(0);
-    anpi::Matrix<T> res(model.rows(),model.cols(),T(0));
+    anpi::Matrix<T> res(model.rows()-2,model.cols()-2,T(0));
     for (int i = 0; i <model.rows() ; ++i) {
         for (int j = 0; j <model.cols() ; ++j) {
-            res[i][j]=vectorX[count];
+            if(!(i==0||i==model.rows()-1||j==0||j==model.cols()-1)){
+            res[i-1][j-1]=vectorX[count];}
             ++count;
         }
     }
+
     return res;
 }

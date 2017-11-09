@@ -1,3 +1,0 @@
-/home/ijtj03/Documentos/Proyecto3_Analisis/CMakeFiles/edit_cache.dir
-/home/ijtj03/Documentos/Proyecto3_Analisis/CMakeFiles/rebuild_cache.dir
-/home/ijtj03/Documentos/Proyecto3_Analisis/CMakeFiles/testPlot.dir

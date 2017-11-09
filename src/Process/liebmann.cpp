@@ -43,8 +43,6 @@ template <typename T>
 void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
     int limit = matA.rows();
     int limitY = matA.cols();
-    //std::vector<std::vector<T>> threads(4);
-    //getThreadLimits(threads,limit-2,limitY-2);
     T error(0);
     std::vector<T> err(4,T(0));
     int  cont(0);
@@ -54,13 +52,11 @@ void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
          for (int i = 1; i < limit-1; ++i) {
              T error = getNodeTem(matA,i,limitY);
              err[omp_get_thread_num()]=error;
-
          }
         error=getMax(err);
-        //std::cout<<"error: "<<error<<std::endl;
         if(error<es){end=true;}
         ++cont;
-        //printMyMat(matA);
+
     }
     std::cout<<"Error: "<<error<<std::endl;
     std::cout<<"Iterations: "<<cont<<std::endl;
@@ -68,7 +64,24 @@ void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
 
 template <typename T>
 void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
+    int limit = matA.rows();
+    int limitY = matA.cols();
+    T error(0);
+    std::vector<T> err(4,T(0));
+    int  cont(0);
+    end=false;
+    while (!end) {
+        for (int i = 1; i < limit-1; ++i) {
+            T error = getNodeTem(matA,i,limitY);
+            err[omp_get_thread_num()]=error;
+        }
+        error=getMax(err);
+        if(error<es){end=true;}
+        ++cont;
 
+    }
+    std::cout<<"Error: "<<error<<std::endl;
+    std::cout<<"Iterations: "<<cont<<std::endl;
 }
 
 template <typename T>

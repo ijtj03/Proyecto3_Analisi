@@ -68,15 +68,16 @@ anpi::Matrix<T> liebmann<T>::solveLiebmann(anpi::Matrix<T> matA,T es) {
     int limit = matA.rows();
     int limitY = matA.cols();
     T error(0);
-    std::vector<T> err(4,T(0));
     int  cont(0);
     end=false;
     while (!end) {
         for (int i = 1; i < limit-1; ++i) {
+
              T e = getNodeTem(matA,i,limitY);
              if(error<e){error=e;}
         }
         if(error<es){end=true;}
+        error=0;
         ++cont;
 
     }

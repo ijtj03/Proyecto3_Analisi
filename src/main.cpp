@@ -5,13 +5,16 @@
 #include "plotQuiver.h"
 #include "edgeNode.cpp"
 #include "liebmann.cpp"
+#include "userInterface.cpp"
 using namespace anpi;
 
 
 int main()
 {
+    userInterface gui;
+    gui.init();
 													//basicamente entre mas alto el numero mas calor  hay
-    //Bordes con rangos de temperaruta
+    /*//Bordes con rangos de temperaruta
     edgeNode<double> up(100,100);
     edgeNode<double> down(0,0);
     edgeNode<double> r(50,50);
@@ -35,7 +38,7 @@ int main()
     plt.initialize(a);
     plt.plotColor();//esta sirve para imprimir sin las  flechas
     plt.plotQuiver();//esta es para que imprima las flechas
-    plt.showPlots();//muestra la grafica
+    plt.showPlots();//muestra la grafica*/
 	return 0;
 
 }

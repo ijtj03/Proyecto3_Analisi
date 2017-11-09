@@ -10,6 +10,7 @@ set(PLOTSOURCES src/main.cpp)
 
 include_directories("src/core" )
 include_directories("src/Process" )
+include_directories("src/GUI" )
 
 add_executable(testPlot ${PLOTSOURCES})
 target_link_libraries(testPlot PRIVATE python2.7)

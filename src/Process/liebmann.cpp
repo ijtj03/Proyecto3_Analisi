@@ -40,7 +40,7 @@ anpi::Matrix<T> liebmann<T>::generateMat(anpi::Matrix<T> originalMat) {
 
 
 template <typename T>
-void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
+Matrix<T> liebmann<T>::solveLiebmannOMP(anpi::Matrix<T> matA, T es) {
     int limit = matA.rows();
     int limitY = matA.cols();
     T error(0);
@@ -60,10 +60,11 @@ void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
     }
     std::cout<<"Error: "<<error<<std::endl;
     std::cout<<"Iterations: "<<cont<<std::endl;
+    return matA;
 }
 
 template <typename T>
-void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
+anpi::Matrix<T> liebmann<T>::solveLiebmann(anpi::Matrix<T> matA,T es) {
     int limit = matA.rows();
     int limitY = matA.cols();
     T error(0);
@@ -73,6 +74,7 @@ void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
     while (!end) {
         for (int i = 1; i < limit-1; ++i) {
             T error = getNodeTem(matA,i,limitY);
+
             err[omp_get_thread_num()]=error;
         }
         error=getMax(err);
@@ -82,6 +84,7 @@ void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
     }
     std::cout<<"Error: "<<error<<std::endl;
     std::cout<<"Iterations: "<<cont<<std::endl;
+    return matA;
 }
 
 template <typename T>
@@ -173,6 +176,7 @@ template<typename T>
 T liebmann<T>::getMax(std::vector<T> errors) {
     T final(0);
     for (int i = 0; i <errors.size() ; ++i) {
+        //std::cout<<"Thread: "<<i<<" error: "<<errors[i]<<std::endl;
         if(errors[i]>final){
             final = errors[i];
         }

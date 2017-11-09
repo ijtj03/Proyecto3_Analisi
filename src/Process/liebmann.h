@@ -22,8 +22,8 @@ public:
     virtual ~liebmann();
     anpi::Matrix<T> generateMat(anpi::Matrix<T>);
     void printMyMat(anpi::Matrix<T>);
-    void solveLiebmannOMP(anpi::Matrix<T>&,T);
-    void solveLiebmann(anpi::Matrix<T>);
+    anpi::Matrix<T> solveLiebmannOMP(anpi::Matrix<T>,T);
+    anpi::Matrix<T> solveLiebmann(anpi::Matrix<T>,T);
     T getNodeTem(anpi::Matrix<T>&,int,int);
     void setUpEdge(int,anpi::Matrix<T>&);
     void setDownEdge(int,int,anpi::Matrix<T>&);

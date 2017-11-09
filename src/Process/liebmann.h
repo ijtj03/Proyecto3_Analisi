@@ -11,10 +11,7 @@
 template <typename T>
 class liebmann {
 private:
-    std::vector<T> vectorX;
-    std::vector<T> vectorXold;
     T lambda;
-    T err;
     bool end=false;
     edgeNode<T> upEdge;
     edgeNode<T> botEdge;
@@ -24,17 +21,15 @@ public:
     liebmann(T,edgeNode<T>,edgeNode<T>,edgeNode<T>,edgeNode<T>);
     virtual ~liebmann();
     anpi::Matrix<T> generateMat(anpi::Matrix<T>);
-    void fillMat(anpi::Matrix<T>&,int,int,int);
-    int identifyNode(int,int,int);
-    bool isNeighbor(int);
     void printMyMat(anpi::Matrix<T>);
+    void solveLiebmannOMP(anpi::Matrix<T>&,T);
     void solveLiebmann(anpi::Matrix<T>);
-    T getNodeTem(anpi::Matrix<T>,int,int);
-    void setUpEdge(int);
-    void setDownEdge(int);
-    void setRLEdge(int,int);
-    T error(int);
-    void printX();
+    T getNodeTem(anpi::Matrix<T>&,int,int);
+    void setUpEdge(int,anpi::Matrix<T>&);
+    void setDownEdge(int,int,anpi::Matrix<T>&);
+    void setRLEdge(int,int,anpi::Matrix<T>&);
+    T error(T,T);
+    T getMax(std::vector<T>);
     anpi::Matrix<T> generateFinalMat(anpi::Matrix<T>);
 
 };

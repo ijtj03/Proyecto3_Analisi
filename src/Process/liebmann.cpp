@@ -29,144 +29,112 @@ liebmann<T>::~liebmann() {
 
 template <typename T>
 anpi::Matrix<T> liebmann<T>::generateMat(anpi::Matrix<T> originalMat) {
-    int limitX = originalMat.rows();
-    int limitY = originalMat.cols();
-    std::vector<T> vector(limitX*limitY,T(0));
-    std::vector<T> vectorOld(limitX*limitY,T(0));
-    vectorX = vector;
-    vectorXold = vectorOld;
-    setUpEdge(limitY);
-    setDownEdge(limitY);
-    setRLEdge(limitY,limitX);
-    //printX();
-    Matrix<T> newMat(limitX*limitY,limitX*limitY,T(0));
-    for(int i= 0; i<limitX*limitY;++i){
-        fillMat(newMat,i,limitX,limitY);
-    }
+    Matrix<T> newMat(originalMat.rows()+2,originalMat.cols()+2,T(0));
+    int limitX = newMat.rows();
+    int limitY = newMat.cols();
+    setUpEdge(limitY,newMat);
+    setDownEdge(limitY,limitX,newMat);
+    setRLEdge(limitY,limitX,newMat);
     return newMat;
 }
 
-template<typename T>
-int liebmann<T>::identifyNode(int node, int maxX, int maxY) {
-    if(node==0){return 1;}
-    else if(node==maxY-1){return 2;}
-    else if(node==(maxX-1)*maxY){return 3;}
-    else if(node== (maxX*maxY)-1){return 4;}
-    else if(node<maxY){return 5;}
-    else if(node>(maxX-1)*maxY){return 6;}
-    else if(node%maxY==0){return 7;}
-    else if((node-maxY+1)%maxY==0){return 8;}
-    else{return 9;}
-}
 
-template<typename T>
-void liebmann<T>::fillMat(anpi::Matrix<T> &matA,int nodeX,int maxX,int maxY) {
-    int id = identifyNode(nodeX,maxX,maxY);
-    matA[nodeX][nodeX]=4;
-    //std::cout<<"node id "<<id<<std::endl;
-    switch(id){
+template <typename T>
+void liebmann<T>::solveLiebmannOMP(anpi::Matrix<T>& matA, T es) {
+    int limit = matA.rows();
+    int limitY = matA.cols();
+    //std::vector<std::vector<T>> threads(4);
+    //getThreadLimits(threads,limit-2,limitY-2);
+    T error(0);
+    std::vector<T> err(4,T(0));
+    int  cont(0);
+    end=false;
+    while (!end) {
+        #pragma omp parallel for  num_threads(4)
+         for (int i = 1; i < limit-1; ++i) {
+             T error = getNodeTem(matA,i,limitY);
+             err[omp_get_thread_num()]=error;
 
-        case 9:
-            matA[nodeX][nodeX+maxY]=1;
-            matA[nodeX][nodeX-maxY]=1;
-            matA[nodeX][nodeX-1]=1;
-            matA[nodeX][nodeX+1]=1;
-            break;
+         }
+        error=getMax(err);
+        //std::cout<<"error: "<<error<<std::endl;
+        if(error<es){end=true;}
+        ++cont;
+        //printMyMat(matA);
     }
-
+    std::cout<<"Error: "<<error<<std::endl;
+    std::cout<<"Iterations: "<<cont<<std::endl;
 }
 
 template <typename T>
 void liebmann<T>::solveLiebmann(anpi::Matrix<T> matA) {
-    int limit = matA.rows();
-    int  cont(0);
-    err = 0;
-    T es = std::sqrt(std::numeric_limits<T>::epsilon());
-    es=0.1;
-    end=false;
-    while (!end&&cont<500) {
-        #pragma omp parallel
-        #pragma omp for schedule(dynamic,1) num_threads(limit/2)
-        for (int i = 0; i < limit; ++i) {
-            if (cont > 0) {
-                vectorXold[i] = vectorX[i]; }
-            getNodeTem(matA, i, limit);
-        }
-        //std::cout<<"\nMax Error "<<err<<"\n"<<std::endl;
-        if(err<es){end=true;}
-        else{err=0;}
-        cont++;
-    }
-    std::cout<<"\nnumber count "<<cont<<"\n"<<std::endl;
-    //printX();
+
 }
 
 template <typename T>
-T liebmann<T>::getNodeTem(anpi::Matrix<T> matA, int node,int limit) {
+T liebmann<T>::getNodeTem(anpi::Matrix<T>& matA, int node,int limit) {
     T temp(0);
     T errorTemp(0);
-    for (int i = 0; i <limit; ++i) {
-        if(i!=node) {
-            temp = temp + (matA[node][i] * vectorX[i]);
-            //std::cout<<"vector X "<<vectorX[i]<<" temp sum "<<node<<": "<<temp<<std::endl;
-        }
 
+    for (int i = 1; i <limit-1; ++i) {
+            temp = matA[node][i+1] + matA[node][i-1]
+                            +matA[node+1][i]+matA[node-1][i];
+       /* std::cout<<"Node : "<<node<<" i: "<<i
+                 <<"\nUp: "<<matA[node-1][i]
+                 <<"\nDown: "<<matA[node+1][i]
+                 <<"\nRigth: "<<matA[node][i+1]
+                 <<"\nLeft: "<<matA[node][i-1]<<std::endl;*/
+        temp = temp/4;
+            temp = lambda*temp+(1-lambda)*matA[node][i];
+            //std::cout<<"Node Temp: "<<temp<<std::endl;
+            T err = error(temp,matA[node][i]);
+            if(errorTemp<err){errorTemp=err;}
+            matA[node][i]=temp;
     }
-    if(temp==0){return vectorX[node];}
-    temp = temp/4;
-    //std::cout<<"temp "<<node<<": "<<temp<<std::endl;
-    temp = lambda*temp+(1-lambda)*vectorXold[node];
-    //std::cout<<"temp relax "<<node<<": "<<temp<<std::endl;
-    vectorX[node]=temp;
-    errorTemp = error(node);
-    if(err<errorTemp){err=errorTemp;}
-    return  temp;
-}
+    return errorTemp;
+    }
 
 template <typename T>
-void liebmann<T>::setUpEdge(int size) {
+void liebmann<T>::setUpEdge(int size,anpi::Matrix<T>&mat) {
     T sum = upEdge.getTempDif(size-1);
     for(int i=0;i<size;++i){
         if(i==0){
 
-            vectorX[i]=upEdge.getUp()+leftEdge.getUp();
+            mat[0][i]=upEdge.getUp()+leftEdge.getUp();
         }
         else if(i==size-1){
-            vectorX[i]=upEdge.getLow()+rightEdge.getUp();
+            mat[0][i]=upEdge.getLow()+rightEdge.getUp();
         }
         else{
-            vectorX[i] = upEdge.getUp()-(i*sum);
+            mat[0][i] = upEdge.getUp()-(i*sum);
         }
     }
 }
 
 template <typename T>
-void liebmann<T>::setDownEdge(int size) {
+void liebmann<T>::setDownEdge(int size,int rows,anpi::Matrix<T>&mat) {
     T sum = botEdge.getTempDif(size-1);
     int offset = (size-1)*size;
-    std::cout<<"offset "<<offset<<std::endl;
     for(int i=0;i<size;++i){
         if(i==0){
-            vectorX[offset]=botEdge.getUp()+leftEdge.getLow();
+            mat[rows-1][i]=botEdge.getUp()+leftEdge.getLow();
         }
         else if(i==size-1){
-            vectorX[offset+i]=botEdge.getLow()+rightEdge.getLow();
+            mat[rows-1][i]=botEdge.getLow()+rightEdge.getLow();
         }
         else{
-            vectorX[offset+i] = botEdge.getUp()-(i*sum);
+            mat[rows-1][i] = botEdge.getUp()-(i*sum);
         }
     }
 }
 
 template <typename T>
-void liebmann<T>::setRLEdge(int sizeX,int sizeY) {
+void liebmann<T>::setRLEdge(int sizeX,int sizeY,anpi::Matrix<T>&mat) {
     T sumL = leftEdge.getTempDif(sizeY-1);
     T sumR = rightEdge.getTempDif(sizeY-1);
-    T offset(0);
     for (int j = 1; j <sizeY-1; ++j) {
-        offset = j*sizeX;
-        vectorX[offset] = leftEdge.getUp() -(j*sumL);
-        vectorX[offset + sizeX-1] = rightEdge.getUp() -(j*sumR);
+        mat[j][0] = leftEdge.getUp() -(j*sumL);
+        mat[j][sizeX-1] = rightEdge.getUp() -(j*sumR);
         }
 }
 
@@ -183,27 +151,32 @@ void liebmann<T>::printMyMat(anpi::Matrix<T> mat) {
 }
 
 template <typename T>
-void liebmann<T>::printX() {
-    for (int j = 0; j <vectorX.size() ; ++j) {
-        std::cout<<"Node "<<j<<": "<<vectorX[j]<<std::endl;
-    }
+T liebmann<T>::error(T newT,T oldT) {
+    T error =std::abs((newT-oldT)/newT)*100;
+    return error;
 }
 
-template <typename T>
-T liebmann<T>::error(int node) {
-    T error =std::abs((vectorX[node]-vectorXold[node])/vectorX[node])*100;
-    return error;
+template<typename T>
+T liebmann<T>::getMax(std::vector<T> errors) {
+    T final(0);
+    for (int i = 0; i <errors.size() ; ++i) {
+        if(errors[i]>final){
+            final = errors[i];
+        }
+    }
+    return final;
 }
 
 template <typename T>
 anpi::Matrix<T> liebmann<T>::generateFinalMat(anpi::Matrix<T> model) {
-    int count(0);
     anpi::Matrix<T> res(model.rows()-2,model.cols()-2,T(0));
-    for (int i = 0; i <model.rows() ; ++i) {
-        for (int j = 0; j <model.cols() ; ++j) {
-            if(!(i==0||i==model.rows()-1||j==0||j==model.cols()-1)){
-            res[i-1][j-1]=vectorX[count];}
-            ++count;
+    int rows = res.rows();
+    int cols = res.cols();
+    for (int i = 0; i <rows; ++i) {
+        for (int j = 0; j <cols; ++j) {
+            //if(!(i==0||i==model.rows()-1||j==0||j==model.cols()-1)){
+            //res[i-1][j-1]=model[i][j];}
+            res[i][j]=model[i+1][j+1];
         }
     }
 

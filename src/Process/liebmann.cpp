@@ -73,11 +73,9 @@ anpi::Matrix<T> liebmann<T>::solveLiebmann(anpi::Matrix<T> matA,T es) {
     end=false;
     while (!end) {
         for (int i = 1; i < limit-1; ++i) {
-            T error = getNodeTem(matA,i,limitY);
-
-            err[omp_get_thread_num()]=error;
+             T e = getNodeTem(matA,i,limitY);
+             if(error<e){error=e;}
         }
-        error=getMax(err);
         if(error<es){end=true;}
         ++cont;
 

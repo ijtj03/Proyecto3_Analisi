@@ -155,7 +155,6 @@ void PlotQuiver<T>::plotColor(){
 template <typename T>
 void PlotQuiver<T>::plotQuiver(){
     PyRun_SimpleString("auxVar = getAuxMats(z)");
-    PyRun_SimpleString("plt.colorbar()");
     PyRun_SimpleString("plt.quiver(auxVar[0],auxVar[1],auxVar[2],auxVar[3],width=.01,linewidth=1)");
 }
 

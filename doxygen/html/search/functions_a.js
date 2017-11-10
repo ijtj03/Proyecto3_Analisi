@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['rows',['rows',['../classanpi_1_1_matrix.html#a4b786272497d9f67f120a226c1bfcff4',1,'anpi::Matrix']]]
+  ['plotcolor',['plotColor',['../classplotpy_1_1_plot_quiver.html#aced0ebd3a2a9dccecb663d7232df5347',1,'plotpy::PlotQuiver']]],
+  ['plotquiver',['plotQuiver',['../classplotpy_1_1_plot_quiver.html#a2e29b30b122e0a60ea359a3aac8c2292',1,'plotpy::PlotQuiver::plotQuiver()'],['../classplotpy_1_1_plot_quiver.html#af55730b497c15cfbc2915034f9ae8d86',1,'plotpy::PlotQuiver::PlotQuiver()']]],
+  ['printmymat',['printMyMat',['../classliebmann.html#aa931cf57ce42feba9ad47da21d81e917',1,'liebmann']]]
 ];

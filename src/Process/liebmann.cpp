@@ -11,6 +11,15 @@
 
 
 using namespace anpi;
+/**
+* Constructor.
+* Para instanciar la clase.
+* @param pLambda lamba nesesario para sobrerelajacion
+* @param up Borde Superior
+* @param down Borde inferior
+* @param left Borde derecho
+* @param left Borde izquierdo
+*/
 template <typename T>
 liebmann<T>::liebmann(T pLambda,edgeNode<T> up,edgeNode<T> down,edgeNode<T> left,edgeNode<T> rigth) {
     // TODO Auto-generated constructor stub
@@ -26,7 +35,10 @@ template <typename T>
 liebmann<T>::~liebmann() {
     // TODO Auto-generated destructor stub
 }
-
+/**
+* Genera la matriz agregando los bordes
+* @param originalMat matriz de dimensiones originales dadas por el usuario
+*/
 template <typename T>
 anpi::Matrix<T> liebmann<T>::generateMat(anpi::Matrix<T> originalMat) {
     Matrix<T> newMat(originalMat.rows()+2,originalMat.cols()+2,T(0));
@@ -38,7 +50,13 @@ anpi::Matrix<T> liebmann<T>::generateMat(anpi::Matrix<T> originalMat) {
     return newMat;
 }
 
-
+/**
+* Aproxima el valor de las temperaturas en cada uno de los nodos de una matriz
+ * utiliza openMP para la optimizacion de los calculos a nivel de procesador
+ * realizar la iteracion de las filas y maneja el control del error
+* @param matA matriz generada con los bordes incluidos
+* @param es error al cual se debe llegar para obtener el resultado de las temperaturas
+*/
 template <typename T>
 Matrix<T> liebmann<T>::solveLiebmannOMP(anpi::Matrix<T> matA, T es) {
     int limit = matA.rows();
@@ -62,22 +80,26 @@ Matrix<T> liebmann<T>::solveLiebmannOMP(anpi::Matrix<T> matA, T es) {
     std::cout<<"Iterations: "<<cont<<std::endl;
     return matA;
 }
-
+/**
+* Aproxima el valor de las temperaturas en cada uno de los nodos de una matriz
+ * realizar la iteracion de las filas y maneja el control del error
+* @param matA matriz generada con los bordes incluidos
+* @param es error al cual se debe llegar para obtener el resultado de las temperaturas
+*/
 template <typename T>
 anpi::Matrix<T> liebmann<T>::solveLiebmann(anpi::Matrix<T> matA,T es) {
     int limit = matA.rows();
     int limitY = matA.cols();
     T error(0);
+    std::vector<T> err(4,T(0));
     int  cont(0);
     end=false;
     while (!end) {
         for (int i = 1; i < limit-1; ++i) {
-
              T e = getNodeTem(matA,i,limitY);
              if(error<e){error=e;}
         }
         if(error<es){end=true;}
-        error=0;
         ++cont;
 
     }
@@ -85,7 +107,13 @@ anpi::Matrix<T> liebmann<T>::solveLiebmann(anpi::Matrix<T> matA,T es) {
     std::cout<<"Iterations: "<<cont<<std::endl;
     return matA;
 }
-
+/**
+* Aproxima el valor de las temperaturas en cada uno de los nodos de una matriz
+ * realizar la iteracion de las columnas y maneja el control del error en cada una de las filas
+* @param matA matriz generada con los bordes incluidos
+* @param node fila en la que se esta evaluando el nodo
+* @param limit Cantidad total de columnas
+*/
 template <typename T>
 T liebmann<T>::getNodeTem(anpi::Matrix<T>& matA, int node,int limit) {
     T temp(0);
@@ -109,6 +137,12 @@ T liebmann<T>::getNodeTem(anpi::Matrix<T>& matA, int node,int limit) {
     return errorTemp;
     }
 
+/**
+* Ingresa el borde superior en la matriz dada por el usuario
+* @param mat matriz generada con los bordes incluidos
+* @param size Cantidad total de columnas
+*/
+
 template <typename T>
 void liebmann<T>::setUpEdge(int size,anpi::Matrix<T>&mat) {
     T sum = upEdge.getTempDif(size-1);
@@ -125,7 +159,12 @@ void liebmann<T>::setUpEdge(int size,anpi::Matrix<T>&mat) {
         }
     }
 }
-
+/**
+* Ingresa el borde inferior en la matriz dada por el usuario
+* @param mat matriz generada con los bordes incluidos
+* @param size Cantidad total de columnas
+* @param rows Cantidad total de filas
+*/
 template <typename T>
 void liebmann<T>::setDownEdge(int size,int rows,anpi::Matrix<T>&mat) {
     T sum = botEdge.getTempDif(size-1);
@@ -142,7 +181,12 @@ void liebmann<T>::setDownEdge(int size,int rows,anpi::Matrix<T>&mat) {
         }
     }
 }
-
+/**
+* Ingresa el borde derecho y el izquierdo en la matriz dada por el usuario
+* @param mat matriz generada con los bordes incluidos
+* @param sizeY Cantidad total de columnas
+* @param sizeX Cantidad total de filas
+*/
 template <typename T>
 void liebmann<T>::setRLEdge(int sizeX,int sizeY,anpi::Matrix<T>&mat) {
     T sumL = leftEdge.getTempDif(sizeY-1);
@@ -152,7 +196,11 @@ void liebmann<T>::setRLEdge(int sizeX,int sizeY,anpi::Matrix<T>&mat) {
         mat[j][sizeX-1] = rightEdge.getUp() -(j*sumR);
         }
 }
+/**
+* Imprime la matriz
+* @param mat matriz generada con los bordes incluidos
 
+*/
 template <typename T>
 void liebmann<T>::printMyMat(anpi::Matrix<T> mat) {
     int limitX = mat.rows();
@@ -164,13 +212,21 @@ void liebmann<T>::printMyMat(anpi::Matrix<T> mat) {
         }
     }
 }
-
+/**
+* Obtiene el error entre un valor nuevo y el anterior a este
+* @param mat matriz generada con los bordes incluidos
+* @param newT Temperatura de nodo nueva
+* @param oldT Temperatura de nodo vieja
+*/
 template <typename T>
 T liebmann<T>::error(T newT,T oldT) {
     T error =std::abs((newT-oldT)/newT)*100;
     return error;
 }
-
+/**
+* Obtiene el error mayor entre cada uno de los hilos
+* @param errors vector de errores en cada hilo
+*/
 template<typename T>
 T liebmann<T>::getMax(std::vector<T> errors) {
     T final(0);
@@ -182,7 +238,10 @@ T liebmann<T>::getMax(std::vector<T> errors) {
     }
     return final;
 }
-
+/**
+* Quita los bordes la matriz para ser impresa y devuelta con sus dimensiones originales
+* @param model matriz generada con los bordes incluidos
+*/
 template <typename T>
 anpi::Matrix<T> liebmann<T>::generateFinalMat(anpi::Matrix<T> model) {
     anpi::Matrix<T> res(model.rows()-2,model.cols()-2,T(0));

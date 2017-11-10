@@ -6,3 +6,11 @@ Para ejecturar el proyecto situese sobre la carpeta del proyecto y ejecute las s
 
 #requerimientos 
 tener openMP instalado
+
+#Autores
+Isaac Trejos 
+Andres Vargas
+Gabriel Barbosa
+
+#Repositorio
+https://github.com/ijtj03/Proyecto3_Analisis.git
